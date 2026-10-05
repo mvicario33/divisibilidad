@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Detective de la Divisibilidad</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#667085;--ok:#087a55;--bad:#b42318;--accent:#4f46e5;--line:#e4e7ec}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:980px;margin:auto;padding:24px}.hero{text-align:center;margin-bottom:18px}.hero h1{margin:0;font-size:clamp(28px,5vw,48px)}.hero p{color:var(--muted);margin:8px 0}
+.tabs,.choices,.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.tab,.choice,button{border:1px solid var(--line);background:white;border-radius:14px;padding:11px 16px;font-weight:700;cursor:pointer}.tab.active,.choice.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 24px rgba(16,24,40,.06);margin-top:16px}.exploregrid{display:grid;grid-template-columns:150px minmax(280px,1fr) minmax(310px,1fr);gap:18px;align-items:start}.numberbox{border:1px solid var(--line);border-radius:18px;padding:18px;background:#fbfcff}.criteriabox{border:none;border-radius:0;padding:18px;background:transparent}.numberbox .number{text-align:left}.criteriaVertical{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.criteriaVertical .choice{font-size:21px;padding:13px}.detectiveStage{min-height:290px;display:flex;align-items:center;justify-content:center;overflow:hidden}.detective{font-size:105px;filter:drop-shadow(0 8px 5px rgba(0,0,0,.15));animation:walkDetective 2.2s ease-in-out infinite;transform-origin:50% 100%}.detective:after{content:'🔎';font-size:48px;position:absolute;margin-left:-30px;margin-top:48px;animation:scan 1.1s ease-in-out infinite alternate}@keyframes walkDetective{0%,100%{transform:translateX(-12px) rotate(-3deg)}50%{transform:translateX(12px) translateY(-8px) rotate(3deg)}}@keyframes scan{from{transform:rotate(-15deg)}to{transform:rotate(18deg)}}.number{font-size:clamp(42px,9vw,76px);font-weight:900;text-align:center;letter-spacing:5px;margin:16px 0}.label{text-align:center;font-weight:700;margin:8px 0 12px}.inputrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.inputrow input{font-size:28px;width:260px;max-width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:14px;text-align:center}
+.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.secondary{background:#eef2ff}.feedback{margin-top:18px;border-radius:16px;padding:16px;background:#f8fafc;border:1px solid var(--line)}.feedback.ok{border-color:#abefc6;background:#ecfdf3}.feedback.bad{border-color:#fecdca;background:#fef3f2}.feedback h3{margin:0 0 8px}.steps{font-size:18px;line-height:1.55}.pill{display:inline-block;padding:5px 10px;border-radius:999px;background:#eef2ff;margin:3px;font-weight:700}.score{text-align:center;color:var(--muted);margin-top:12px}.counter{display:flex;justify-content:center;margin:14px 0 4px}.counterBox{background:#eef2ff;border:1px solid #c7d2fe;border-radius:16px;padding:10px 18px;font-weight:900;font-size:18px}.hidden{display:none}.challenge{text-align:center;font-size:20px;font-weight:800}.small{font-size:14px;color:var(--muted);text-align:center;margin-top:10px}@media(max-width:760px){.exploregrid{grid-template-columns:1fr}.detectiveStage{min-height:150px}.detective{font-size:88px}.numberbox .number{text-align:center}}@media(max-width:520px){.wrap{padding:12px}.card{padding:16px}.choice{padding:10px 13px}.criteriaVertical{grid-template-columns:repeat(2,1fr)}}
+
+.summaryOverlay{position:fixed;inset:0;background:rgba(23,32,51,.72);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}
+.summaryOverlay.hidden{display:none}
+.summaryCard{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:24px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.25)}
+.summaryCard h2{text-align:center;margin-top:0}
+.summaryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
+.summaryStat{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:14px;text-align:center}
+.summaryStat b{display:block;font-size:28px}
+.summaryList{line-height:1.65}
+@media(max-width:520px){.summaryGrid{grid-template-columns:1fr}}
+
+
+.summaryTable{width:100%;border-collapse:collapse;margin-top:12px}
+.summaryTable th,.summaryTable td{border:1px solid var(--line);padding:12px;vertical-align:top;text-align:left}
+.summaryTable th{background:#eef2ff;font-weight:900}
+.summaryTable td:first-child{width:28%;font-weight:800;text-align:center;font-size:18px}
+.summaryTable tbody tr:nth-child(even){background:#f8fafc}
+@media(max-width:560px){
+  .summaryTable th,.summaryTable td{padding:9px;font-size:14px}
+  .summaryTable td:first-child{width:30%;font-size:16px}
+}
+
+/* Compatibilidad móvil / iPhone */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,input{-webkit-appearance:none;appearance:none;font:inherit}
+button,.choice,.tab{touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-height:46px}
+input{min-height:48px}
+@media(max-width:760px){
+  .wrap{width:100%;max-width:100%;padding:12px}
+  .hero h1{font-size:30px;line-height:1.08}
+  .hero p{font-size:15px}
+  .tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .tab{padding:10px 7px;font-size:13px}
+  .counter{margin:10px 0 2px}
+  .counterBox{font-size:15px;padding:9px 12px}
+  .card{margin-top:10px;padding:12px;border-radius:18px}
+  .exploregrid{display:grid;grid-template-columns:90px minmax(0,1fr);gap:10px;align-items:center}
+  .detectiveStage{grid-column:1;grid-row:1;min-height:125px;overflow:visible}
+  .detective{font-size:70px}
+  .detective:after{font-size:32px;margin-left:-22px;margin-top:35px}
+  .numberbox{grid-column:2;grid-row:1;padding:12px;min-width:0}
+  .numberbox .label{margin-top:0}
+  .inputrow{display:grid;grid-template-columns:1fr;gap:8px}
+  .inputrow input{width:100%;max-width:100%;font-size:24px}
+  .inputrow button{width:100%}
+  .number{font-size:44px;letter-spacing:2px;margin:10px 0;overflow-wrap:anywhere}
+  .criteriabox{grid-column:1 / -1;grid-row:2;padding:8px 0 0}
+  .criteriaVertical{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+  .criteriaVertical .choice{font-size:18px;padding:10px 4px}
+  .feedback{padding:13px;margin-top:12px}
+  .steps{font-size:16px;overflow-wrap:anywhere}
+  #guessChoices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+  #guessChoices .choice{padding:10px 4px}
+  .actions button{flex:1 1 140px}
+  .summaryOverlay{align-items:flex-start;padding:10px;overflow:auto}
+  .summaryCard{max-height:none;margin:10px 0;padding:15px;border-radius:18px}
+  .summaryTable{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .summaryTable th,.summaryTable td{min-width:130px}
+}
+@media(max-width:390px){
+  .tabs{grid-template-columns:1fr}
+  .exploregrid{grid-template-columns:76px minmax(0,1fr)}
+  .detective{font-size:60px}
+  .criteriaVertical,#guessChoices{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero h1{font-size:26px}
+}
+
+
+/* Versión multiplataforma: escritorio + celular */
+.desktopHint,.mobileHint{display:none}
+@media (min-width:761px){
+  .desktopHint{display:block}
+  .wrap{max-width:1100px}
+  .exploregrid{grid-template-columns:150px minmax(300px,1fr) minmax(310px,1fr)}
+}
+@media (max-width:760px){
+  .mobileHint{display:block}
+  body{overflow-x:hidden}
+}
+
+</style>
+</head>
+<body><main class="wrap">
+<section class="hero"><h1>🔎 Detective de la Divisibilidad</h1><p>Predice, comprueba y explica por qué un número es divisible.</p><p class="small desktopHint">💻 Vista para computadora: usa teclado o ratón.</p><p class="small mobileHint">📱 Vista para celular: toca los botones y usa el teclado numérico.</p></section>
+<div class="tabs"><button class="tab active" data-mode="explora">Explorar</button><button class="tab" data-mode="adivina">Adivina primero</button><button class="tab" data-mode="reto">Reto</button></div><div class="counter"><div class="counterBox">🔢 Cantidades analizadas: <span id="analysisCount">0</span></div></div>
+<section class="card">
+<div id="exploraPanel">
+  <div class="exploregrid">
+    <div class="detectiveStage" aria-label="Detective animado"><div class="detective">🕵️</div></div>
+    <div class="numberbox">
+      <div class="label">Número</div>
+      <div class="inputrow"><input id="numInput" inputmode="numeric" pattern="[0-9]*" enterkeyhint="go" autocomplete="off" value="2736" maxlength="9"><button class="primary" id="analizar">Analizar</button></div>
+      <div class="number" id="numberDisplay">2736</div>
+      <div class="small">Escribe un número entero positivo.</div>
+    </div>
+    <div class="criteriabox">
+      <div class="label">Criterios de divisibilidad</div>
+      <div class="choices criteriaVertical" id="criteria"></div>
+      <div class="small">Elige un criterio para investigarlo.</div>
+    </div>
+  </div>
+  <div id="feedback" class="feedback"><h3>👀 Elige un criterio</h3><div class="steps">El detective observará las cifras importantes y explicará la regla.</div></div>
+</div>
+<div id="adivinaPanel" class="hidden">
+  <div class="label">¿Entre cuáles números crees que es divisible?</div><div class="number" id="guessNumber"></div><div class="choices" id="guessChoices"></div>
+  <div class="actions" style="margin-top:16px"><button class="primary" id="checkGuess">Comprobar</button><button id="newGuess">Otro número</button></div><div id="guessFeedback" class="feedback hidden"></div><div class="score" id="score">Aciertos: 0 / 0</div>
+</div>
+<div id="retoPanel" class="hidden">
+  <div class="challenge" id="challengeText"></div><div class="inputrow" style="margin-top:18px"><input id="challengeInput" inputmode="numeric" pattern="[0-9]*" enterkeyhint="go" autocomplete="off" placeholder="Tu número"><button class="primary" id="checkChallenge">Comprobar</button></div>
+  <div class="actions" style="margin-top:12px"><button id="newChallenge">Nuevo reto</button></div><div id="challengeFeedback" class="feedback hidden"></div>
+</div>
+</section>
+<p class="small">Criterios incluidos: 2, 3, 4, 5, 6, 8, 9 y 10.</p>
+
+<div id="summaryOverlay" class="summaryOverlay hidden">
+  <div class="summaryCard">
+    <h2>🕵️ Resumen de 10 cantidades</h2>
+    <div class="summaryGrid">
+      <div class="summaryStat"><b id="sumAnalyzed">10</b>analizadas</div>
+      <div class="summaryStat"><b id="sumCorrect">0</b>aciertos</div>
+      <div class="summaryStat"><b id="sumPercent">0%</b>desempeño</div>
+    </div>
+    <div id="summaryDetails" class="summaryList"></div>
+    <div class="actions" style="margin-top:18px">
+      <button class="primary" id="continueTen">Comenzar otros 10</button>
+    </div>
+  </div>
+</div>
+
+</main>
+<script>
+const divisors=[2,3,4,5,6,8,9,10];
+let analysisCount=0;
+let lastExploreCounted=null;
+let sessionResults=[];
+let exploreRecord=null;
+
+function updateAnalysisCount(){document.querySelector('#analysisCount').textContent=analysisCount}
+
+function registerResult(record){
+  sessionResults.push(record);
+  analysisCount++;
+  updateAnalysisCount();
+  if(analysisCount===10) setTimeout(showSummary,250);
+}
+
+function countExploreNumber(n){
+  if(lastExploreCounted!==n){
+    lastExploreCounted=n;
+    exploreRecord={mode:'Explorar',number:n,correct:true,criterion:null};
+    registerResult(exploreRecord);
+  }
+}
+
+function countOne(record){registerResult(record)}
+
+function showSummary(){
+  const correct=sessionResults.filter(r=>r.correct).length;
+  const percent=Math.round(correct/10*100);
+  const mistakes=sessionResults.filter(r=>!r.correct);
+  const criterionMistakes={};
+  mistakes.forEach(r=>{
+    (r.criteria||[]).forEach(d=>criterionMistakes[d]=(criterionMistakes[d]||0)+1);
+  });
+  const needs=Object.entries(criterionMistakes).sort((a,b)=>b[1]-a[1]).map(([d])=>d);
+  document.querySelector('#sumAnalyzed').textContent=10;
+  document.querySelector('#sumCorrect').textContent=correct;
+  document.querySelector('#sumPercent').textContent=percent+'%';
+  let msg=percent>=90?'🌟 Excelente trabajo de detective.':
+          percent>=70?'👏 Buen trabajo. Sigue practicando algunos criterios.':
+          '🔎 Conviene revisar los criterios antes de la siguiente ronda.';
+  let detail=`<p><b>${msg}</b></p>`;
+  if(needs.length){
+    detail+=`<p><b>Criterios que conviene reforzar:</b> ${needs.map(d=>'÷ '+d).join(', ')}.</p>`;
+  } else {
+    detail+=`<p><b>Muy bien:</b> no se registraron errores en esta ronda.</p>`;
+  }
+  detail+='<p><b>Registro de las 10 cantidades:</b></p><table class="summaryTable"><thead><tr><th>Número explorado</th><th>Explicación</th></tr></thead><tbody>'+sessionResults.map(r=>{
+    const mark=r.correct?'✅':'❌';
+    const criteria=r.criteria&&r.criteria.length?`<div style="margin-top:4px;font-size:13px;color:#667085">Criterios: ${r.criteria.join(', ')}</div>`:'';
+    return `<tr><td>${mark}<br>${r.number}${criteria}</td><td>${r.explanation||'Se exploró este número para reconocer sus criterios de divisibilidad.'}</td></tr>`;
+  }).join('')+'</tbody></table>';
+  document.querySelector('#summaryDetails').innerHTML=detail;
+  document.querySelector('#summaryOverlay').classList.remove('hidden');
+}
+
+function resetTen(){
+  analysisCount=0; sessionResults=[]; lastExploreCounted=null; exploreRecord=null;
+  updateAnalysisCount();
+  document.querySelector('#summaryOverlay').classList.add('hidden');
+}
+
+const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
+function clean(v){const n=parseInt(String(v).replace(/\D/g,''),10);return Number.isFinite(n)&&n>0?n:null}
+function digitSum(n){return String(n).split('').reduce((a,b)=>a+Number(b),0)}
+function explanation(n,d){const s=String(n), last=Number(s.charAt(s.length-1)), last2=Number(s.slice(-2)), last3=Number(s.slice(-3)), sum=digitSum(n);let rule='',calc='',ok=n%d===0;
+ if(d===2){rule='Un número es divisible entre 2 si termina en 0, 2, 4, 6 u 8.';calc=`La última cifra es <b>${last}</b>. ${last%2===0?'Es par.':'No es par.'}`}
+ if(d===3){rule='Es divisible entre 3 si la suma de sus cifras es múltiplo de 3.';calc=`${s.split('').join(' + ')} = <b>${sum}</b>. ${sum%3===0?sum+' es múltiplo de 3.':sum+' no es múltiplo de 3.'}`}
+ if(d===4){rule='Es divisible entre 4 si sus dos últimas cifras forman un múltiplo de 4.';calc=`Las dos últimas cifras forman <b>${last2}</b>. ${last2%4===0?'Es múltiplo de 4.':'No es múltiplo de 4.'}`}
+ if(d===5){rule='Es divisible entre 5 si termina en 0 o 5.';calc=`La última cifra es <b>${last}</b>. ${[0,5].includes(last)?'Cumple la regla.':'No cumple la regla.'}`}
+ if(d===6){rule='Es divisible entre 6 si es divisible entre 2 y entre 3 al mismo tiempo.';calc=`Criterio del 2: <b>${n%2===0?'sí':'no'}</b>. Criterio del 3: <b>${n%3===0?'sí':'no'}</b>.`}
+ if(d===8){rule='Es divisible entre 8 si sus tres últimas cifras forman un múltiplo de 8.';calc=`Las tres últimas cifras forman <b>${last3}</b>. ${last3%8===0?'Es múltiplo de 8.':'No es múltiplo de 8.'}`}
+ if(d===9){rule='Es divisible entre 9 si la suma de sus cifras es múltiplo de 9.';calc=`${s.split('').join(' + ')} = <b>${sum}</b>. ${sum%9===0?sum+' es múltiplo de 9.':sum+' no es múltiplo de 9.'}`}
+ if(d===10){rule='Es divisible entre 10 si termina en 0.';calc=`La última cifra es <b>${last}</b>. ${last===0?'Cumple la regla.':'No cumple la regla.'}`}
+ return {ok,rule,calc};}
+function renderCriteria(){ $('#criteria').innerHTML=divisors.map(d=>`<button class="choice" data-d="${d}">÷ ${d}</button>`).join(''); $$('#criteria .choice').forEach(b=>b.onclick=()=>showCriterion(Number(b.dataset.d)));}
+function showCriterion(d){const n=clean($('#numInput').value);if(!n)return;countExploreNumber(n);if(exploreRecord){
+      exploreRecord.criterion=d;
+      const ex=explanation(n,d);
+      exploreRecord.explanation=`Criterio del ${d}: ${ex.rule} ${ex.calc.replace(/<[^>]*>/g,'')}`;
+    }$$('#criteria .choice').forEach(b=>b.classList.toggle('active',Number(b.dataset.d)===d));const e=explanation(n,d),f=$('#feedback');f.className='feedback '+(e.ok?'ok':'bad');f.innerHTML=`<h3>${e.ok?'✅ Sí':'❌ No'}: ${n} ${e.ok?'es':'no es'} divisible entre ${d}</h3><div class="steps"><b>Regla:</b> ${e.rule}<br><b>Comprobación:</b> ${e.calc}<br><b>División:</b> ${n} ÷ ${d} = ${e.ok?'<b>'+n/d+'</b>':'no da un número entero'}.</div>`}
+$('#analizar').onclick=()=>{const n=clean($('#numInput').value);if(!n){alert('Escribe un número entero positivo.');return}lastExploreCounted=null;$('#numInput').value=n;$('#numberDisplay').textContent=n;$('#feedback').className='feedback';$('#feedback').innerHTML='<h3>👀 Ahora elige un criterio</h3><div class="steps">¿Qué regla quieres comprobar?</div>';$$('#criteria .choice').forEach(b=>b.classList.remove('active'))};
+function randomN(){return Math.floor(Math.random()*8900)+100}
+let guessN,score=0,rounds=0;
+function newGuess(){guessN=randomN();$('#checkGuess').disabled=false;$('#guessNumber').textContent=guessN;$('#guessChoices').innerHTML=divisors.map(d=>`<button class="choice" data-d="${d}">÷ ${d}</button>`).join('');$$('#guessChoices .choice').forEach(b=>b.onclick=()=>b.classList.toggle('active'));$('#guessFeedback').classList.add('hidden')}
+$('#checkGuess').onclick=()=>{const selected=$$('#guessChoices .choice.active').map(b=>Number(b.dataset.d));const correct=divisors.filter(d=>guessN%d===0);const perfect=selected.length===correct.length&&selected.every(x=>correct.includes(x));countOne({
+      mode:'Adivina',
+      number:guessN,
+      correct:perfect,
+      criteria:correct,
+      explanation: correct.length
+        ? correct.map(d=>{const ex=explanation(guessN,d);return `Criterio del ${d}: ${ex.rule} ${ex.calc.replace(/<[^>]*>/g,'')}`}).join(' ')
+        : `${guessN} no cumple ninguno de los criterios propuestos: ${divisors.join(', ')}.`
+    });$('#checkGuess').disabled=true;rounds++;if(perfect)score++;$('#score').textContent=`Aciertos: ${score} / ${rounds}`;const f=$('#guessFeedback');f.className='feedback '+(perfect?'ok':'bad');f.innerHTML=`<h3>${perfect?'🌟 ¡Excelente!':'🔍 Revisa tus criterios'}</h3><div class="steps">${guessN} es divisible, de esta lista, entre: ${correct.length?correct.map(d=>`<span class="pill">${d}</span>`).join(' '):'<b>ninguno</b>'}.<br>Prueba cada criterio en el modo <b>Explorar</b> para descubrir por qué.</div>`};$('#newGuess').onclick=newGuess;
+const challenges=[
+ {text:'Construye un número de 3 o 4 cifras divisible entre 3 y 5, pero NO entre 2.',test:n=>n>=100&&n<=9999&&n%3===0&&n%5===0&&n%2!==0,hint:'Piensa en la última cifra y luego en la suma de las cifras.'},
+ {text:'Construye un número de 3 o 4 cifras divisible entre 4 y 9.',test:n=>n>=100&&n<=9999&&n%4===0&&n%9===0,hint:'Observa las dos últimas cifras y la suma de todas las cifras.'},
+ {text:'Construye un número de 3 o 4 cifras divisible entre 6, pero NO entre 10.',test:n=>n>=100&&n<=9999&&n%6===0&&n%10!==0,hint:'Para 6 debe cumplir los criterios del 2 y del 3.'},
+ {text:'Construye un número de 3 o 4 cifras divisible entre 8 y 5.',test:n=>n>=100&&n<=9999&&n%8===0&&n%5===0,hint:'Mira las tres últimas cifras y también cómo termina el número.'}
+];let ch;
+function newChallenge(){ch=challenges[Math.floor(Math.random()*challenges.length)];$('#checkChallenge').disabled=false;$('#challengeText').textContent='🎯 '+ch.text;$('#challengeInput').value='';$('#challengeFeedback').classList.add('hidden')}
+$('#newChallenge').onclick=newChallenge;$('#checkChallenge').onclick=()=>{const n=clean($('#challengeInput').value),f=$('#challengeFeedback');if(!n)return;$('#checkChallenge').disabled=true;const ok=ch.test(n);countOne({
+      mode:'Reto',
+      number:n,
+      correct:ok,
+      criteria:[],
+      explanation: ok
+        ? `El número ${n} cumple todas las condiciones del reto: ${ch.text}`
+        : `${ch.hint} El número ${n} todavía no cumple todas las condiciones del reto.`
+    });f.className='feedback '+(ok?'ok':'bad');f.innerHTML=`<h3>${ok?'🏆 ¡Reto superado!':'💡 Todavía no'}</h3><div class="steps">${ok?`Tu número <b>${n}</b> cumple todas las condiciones.`:`${ch.hint} Intenta modificar una cifra de <b>${n}</b>.`}</div>`};
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');['explora','adivina','reto'].forEach(m=>$('#'+m+'Panel').classList.toggle('hidden',m!==t.dataset.mode));if(t.dataset.mode==='adivina')newGuess();if(t.dataset.mode==='reto')newChallenge()});
+$('#continueTen').onclick=resetTen;
+$('#numInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('#analizar').click();}});
+$('#challengeInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('#checkChallenge').click();}});
+window.addEventListener('error',function(){var f=document.querySelector('#feedback');if(f){f.className='feedback bad';f.innerHTML='<h3>⚠️ Ocurrió un problema</h3><div class="steps">Recarga la página e inténtalo de nuevo. Este simulador está preparado para Safari en iPhone.</div>';}});
+renderCriteria();newGuess();newChallenge();
+</script></body></html>
